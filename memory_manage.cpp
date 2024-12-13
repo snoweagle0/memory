@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
+using namespace std;
 void display_freelist();
+bool cmp();
+
 typedef struct memory_unit{ // 内存块结构体
     int size;
     char* star_address;
@@ -17,6 +21,7 @@ typedef struct work_unit {
     int size;
     struct work_unit* next;
 }wklist;
+mslist* list_sort(mslist* head);
 mslist* table;//内存块表
 mslist* f_table;//空闲分区表
 wklist* wkunit;
@@ -71,7 +76,7 @@ mslist* creat()
     head->star_address = (char*)malloc(100);
     head->next = NULL;
     head->last = NULL;
-    head->size = 100;
+    head->size = 99;
     head->state = false;
     strcpy(head->workname, "NULL\0");
     f_table= (mslist*)malloc(sizeof(mslist));
@@ -84,8 +89,6 @@ mslist* creat()
 }
 int request_mem(int r_size,char workname[])
 {
-    
-    
     mslist* p, *q,* pnew;
     mslist* f_last, * f_next;
     p = f_table;
@@ -104,9 +107,23 @@ int request_mem(int r_size,char workname[])
                         q->state = true;
                         f_last = p->last;
                         f_next = p->next;
-                        f_last->next = p->next;
-                        f_next->last = p->last;
-                        free(p);
+                        if (f_last != NULL && f_next != NULL)
+                        {
+                            f_last->next = p->next;
+                            f_next->last = p->last;
+                            free(p);
+                        }
+                        else if (p==f_table)
+                        {
+                            f_table = f_table->next;
+                            free(p);
+                        }
+                        else if (p->next==NULL)
+                        {
+                            f_last->next = NULL;
+                            free(p);
+                        }
+                        list_sort(f_table);
                         return 0;
                    }
                     else {
@@ -119,7 +136,8 @@ int request_mem(int r_size,char workname[])
                         pnew->last = q;
                         pnew->next = q->next;
                         q->next = pnew;
-                        q->size =q->size - r_size;
+                        q->size = q->size - r_size;
+                        list_sort(f_table);
                         return 0;
                     }
                 }
@@ -138,14 +156,55 @@ int request_mem(int r_size,char workname[])
     }
     return 0;
 }
-int release_mem(char workname[],mslist* rhead)
+int release_mem(char workname[], mslist* rhead)
 {
-   
-    return 0;
+  
 }
-int list_sort(mslist* head)
+mslist* list_sort(mslist* head)
 {
-    return 0;
+    if (head==NULL || head->next == NULL)
+    {
+        return head;
+    }
+    mslist* pn, * pl;
+    pl = head;
+    head = head->next;
+    pl->next = NULL;
+    pl->last = NULL;
+    while (head != NULL)
+    {
+        pn = head;
+        mslist* p = pl,*flag=NULL;
+        while (p != NULL && pn->size > p->size)
+        {
+            flag = p;
+            p = p->next;
+        }
+        if (p != NULL)
+        {
+            if (p->last != NULL)
+            {
+                pn->next = p;
+                pn->last = p->last;
+                p->last->next = pn;
+                p->last = pn;
+            }
+            else if (p->last == NULL)
+            {
+                pn->last = NULL;
+                pn->next = p;
+                p->last = pn;
+                pl = pn;
+            }
+        }
+        else {
+            flag->next = pn;
+            pn->last = flag;
+            pn->next = NULL;
+        }
+        head = head->next;
+    }
+    return pl;
 }
 int main()
 {
@@ -154,6 +213,7 @@ int main()
     char work[256];
     int r_size = 0;
     table = creat();
+    list_sort(f_table);
     bool flag = false;
     while(1)
     {
@@ -165,6 +225,7 @@ int main()
             printf("Enter the process name and required memory space.\n");
             printf("___>");
             scanf("%s",work);
+            //printf("Enter you ")
             scanf("%d",&r_size);
             if (strlen(work) <= 0)
             {

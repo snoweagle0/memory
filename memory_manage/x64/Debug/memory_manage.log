@@ -1,1 +1,19 @@
-﻿  memory_manage.vcxproj -> I:\code\VS\memory_manage\memory_manage\x64\Debug\memory_manage.exe
+﻿  memory_manage.cpp
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(41,16): warning C4477: “printf”: 格式字符串“%u”需要类型“unsigned int”的参数，但可变参数 3 拥有了类型“char *”
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(41,16): warning C4313: "printf": 格式字符串中的 "%u" 与类型为 "char *" 的参数 3 冲突
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(43,20): warning C4477: “printf”: 格式字符串“%u”需要类型“unsigned int”的参数，但可变参数 3 拥有了类型“char *”
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(43,20): warning C4313: "printf": 格式字符串中的 "%u" 与类型为 "char *" 的参数 3 冲突
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(58,20): warning C4477: “printf”: 格式字符串“%u”需要类型“unsigned int”的参数，但可变参数 2 拥有了类型“char *”
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(58,20): warning C4313: "printf": 格式字符串中的 "%u" 与类型为 "char *" 的参数 2 冲突
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(60,20): warning C4477: “printf”: 格式字符串“%u”需要类型“unsigned int”的参数，但可变参数 2 拥有了类型“char *”
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(60,20): warning C4313: "printf": 格式字符串中的 "%u" 与类型为 "char *" 的参数 2 冲突
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(81,5): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(106,25): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(132,25): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(206,17): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(299,9): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(304,13): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(306,13): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(323,13): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+I:\code\VS\memory_manage\memory_manage\memory_manage.cpp(239,1): warning C4715: “release_mem”: 不是所有的控件路径都返回值
+  memory_manage.vcxproj -> I:\code\VS\memory_manage\memory_manage\x64\Debug\memory_manage.exe
