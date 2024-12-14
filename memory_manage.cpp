@@ -135,6 +135,10 @@ int request_mem(int r_size,char workname[])
                         pnew->state = true;
                         pnew->last = q;
                         pnew->next = q->next;
+                        if (q->next != NULL)
+                        {
+                            q->next->last = pnew;
+                        }
                         q->next = pnew;
                         q->size = q->size - r_size;
                         list_sort(f_table);
@@ -158,7 +162,88 @@ int request_mem(int r_size,char workname[])
 }
 int release_mem(char workname[], mslist* rhead)
 {
-  
+    mslist* s1 = NULL, * s2 = NULL, * t1 = NULL, * t2 = NULL, * head = rhead;
+    char* t = workname;
+    while (head != NULL)
+    {
+        if (strcmp(t, head->workname) == 0)
+        {
+            t1 = head->last;
+            t2 = head->next;
+            if (t1->state == 0)
+            {
+                if (t2 == NULL)
+                {
+                    t1->size += head->size;
+                    t1->next = head->next;
+                    s1 = head;
+                    head = t1;
+                    free(s1);
+                    printf("释放了！\n");
+                    return 1;
+                }
+                else if (t2->state == 0)
+                {
+                    t1->size += head->size + t2->size;
+                    s1 = head;
+                    s2 = head->next;
+                    t1->next = s2->next;
+                    head = t1;
+                    free(s1);
+                    free(s2);
+                    printf("释放了！\n");
+                    return 1;
+                }
+                else
+                {
+                    t1->size += head->size;
+                    t1->next = head->next;
+                    s1 = head;
+                    head = t1;
+                    free(s1);
+                    printf("释放了！\n");
+                    return 1;
+                }
+            }
+            else if (t2 == NULL)
+            {
+                strcpy(head->workname, "NULL");
+                head->state = 0;
+                printf("释放了！\n");
+                return 1;
+            }
+            else if (t2->state == 0)
+            {
+                t2->size += head->size;
+                t2->star_address = head->star_address;
+                head = t2;
+                s1 = head;
+                free(s1);
+                printf("释放了！\n");
+                return 1;
+            }
+            else
+            {
+                /*t1->next = head;
+                head->last = t1;
+                head->next = t2;
+                t2->last = head;
+                printf("释放了！\n");
+                return 1;*/
+                head->state = 0;
+                strcpy(head->workname,"NULL");
+                printf("释放了！\n");
+                return 1;
+            }
+        }
+        else
+            head = head->next;
+    }
+    if (head == NULL)
+    {
+        printf("没有找到！\n");
+        return 0;
+    }
 }
 mslist* list_sort(mslist* head)
 {
