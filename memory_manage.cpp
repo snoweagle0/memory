@@ -21,7 +21,7 @@ typedef struct work_unit {
     int size;
     struct work_unit* next;
 }wklist;
-mslist* list_sort(mslist* head);
+mslist* list_sort(mslist* &head);
 mslist* table;//内存块表
 mslist* f_table;//空闲分区表
 wklist* wkunit;
@@ -65,11 +65,6 @@ void display_freelist()//显示空闲分区表
 mslist* creat_node()
 {
     return (mslist*)malloc(sizeof(mslist));
-}
-mslist* free_init(mslist* h)
-{
-   
-    return NULL;
 }
 mslist* creat()
 {
@@ -124,7 +119,7 @@ int request_mem(int r_size,char workname[])
                             f_last->next = NULL;
                             free(p);
                         }
-                        list_sort(f_table);
+                        Listsort(f_table);
                         return 0;
                    }
                     else {
@@ -142,7 +137,7 @@ int request_mem(int r_size,char workname[])
                         }
                         q->next = pnew;
                         q->size = q->size - r_size;
-                        list_sort(f_table);
+                        Listsort(f_table);
                         return 0;
                     }
                 }
@@ -281,7 +276,7 @@ int release_mem(char workname[], mslist* rhead)
         return 0;
     }
 }
-void Listsort(mslist*& head) {
+void Listsort(mslist*& head) {          //按照内存大小排序
     if (head == NULL || head->next == NULL)
         return;
     mslist* p = NULL, * q = head, * q1, * qhead; // p是排序后的
@@ -327,6 +322,74 @@ void Listsort(mslist*& head) {
         p = p->next;
     }
     if (p->size < q->size) {
+        p->next = q;
+        q->last = p;
+    }
+    else {
+        if (p->last != NULL) {
+            mslist* t = p->last;
+            t->next = q;
+            q->last = t;
+            q->next = p;
+            p->last = q;
+        }
+        else {
+            q->next = p;
+            p->last = q;
+        }
+    }
+    while (p->last != NULL) {
+        p = p->last;
+    }
+    head = p;
+}
+mslist* list_sort(mslist*& head)   // 按地址大小排序
+{
+    if (head == NULL || head->next == NULL)
+        return;
+    mslist* p = NULL, * q = head, * q1, * qhead; // p是排序后的
+    while (q->next != NULL)
+    {
+        q1 = q->next;
+        q->next = NULL;
+        q->last = NULL;
+        q1->last = NULL;
+        int flag = 0;
+        if (p == NULL) {
+            p = q;
+            q = q1;
+            continue;
+        }
+        while (p->star_address < q->star_address && p->next != NULL)
+        {
+            p = p->next;
+        }
+        if (p->star_address < q->star_address) {
+            p->next = q;
+            q->last = p;
+        }
+        else {
+            if (p->last != NULL) {
+                mslist* t = p->last;
+                t->next = q;
+                q->last = t;
+                q->next = p;
+                p->last = q;
+            }
+            else {
+                q->next = p;
+                p->last = q;
+            }
+        }
+        q = q1;
+        while (p->last != NULL) {
+            p = p->last;
+        }
+    }
+    while (p->star_address < q->star_address && p->next != NULL) {
+        p = p->next;
+    }
+    if (p->star_address < q->star_address) {
         p->next = q;
         q->last = p;
     }
