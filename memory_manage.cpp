@@ -66,8 +66,9 @@ mslist* creat_node()
 {
     return (mslist*)malloc(sizeof(mslist));
 }
-mslist* free_init(mslist* head)
+mslist* free_init(mslist* h)
 {
+   
     return NULL;
 }
 mslist* creat()
@@ -170,71 +171,106 @@ int release_mem(char workname[], mslist* rhead)
         {
             t1 = head->last;
             t2 = head->next;
-            if (t1->state == 0)
+            //上为空
+            if (t1 == NULL)
             {
+                //下为空
                 if (t2 == NULL)
                 {
-                    t1->size += head->size;
-                    t1->next = head->next;
-                    s1 = head;
-                    head = t1;
-                    free(s1);
-                    printf("释放了！\n");
-                    return 1;
-                }
-                else if (t2->state == 0)
-                {
-                    t1->size += head->size + t2->size;
-                    s1 = head;
-                    s2 = head->next;
-                    t1->next = s2->next;
-                    head = t1;
-                    free(s1);
-                    free(s2);
+                    strcpy(head->workname, "NULL");
+                    head->state = 0;
                     printf("释放了！\n");
                     return 1;
                 }
                 else
                 {
-                    t1->size += head->size;
-                    t1->next = head->next;
+                    //下被占用
+                    if (t2->state == 0)
+                    {
+                        t2->size += head->size;
+                        t2->star_address = head->star_address;
+                       // strcpy(t2->workname, "NULL");
+                        s1 = head;
+                        head = t2;
+                        free(s1);
+                        printf("释放了！\n");
+                        return 1;
+                    }
+                    else
+                    {
+                        strcpy(head->workname, "NULL");
+                        head->state = 0;
+                        printf("释放了！\n");
+                        return 1;
+                    }
+                    
+                }
+            }
+            else//上不为空
+                if (t1->state == 0)
+                {
+                    if (t2 == NULL)//释放尾节点
+                    {
+                        t1->size += head->size;
+                        t1->next = head->next;
+                        s1 = head;
+                        head = t1;
+                        free(s1);
+                        //release_table(head->workname,f_table,1,head->size);
+                        printf("释放了！\n");
+                        return 1;
+                    }
+                    else if (t2->state == 0)//合并三个空闲分区
+                    {
+                        t1->size += head->size + t2->size;
+                        s1 = head;
+                        s2 = head->next;
+                        t1->next = s2->next;
+                        if(t2->next!=NULL)
+                        t2->next->last = t1;
+                        head = t1;
+                        free(s1);
+                        free(s2);
+                        //release_table(head->workname, f_table, 1, head->size);
+                        printf("释放了！\n");
+                        return 1;
+                    }
+                    else//向上合并
+                    {
+                        t1->size += head->size;
+                        t1->next = head->next;
+                        t2->last = t1;
+                        s1 = head;
+                        head = t1;
+                        free(s1);
+                        printf("释放了！\n");
+                        return 1;
+                    }
+                }
+                else if (t2 == NULL)//释放尾节点
+                {
+                    strcpy(head->workname, "NULL");
+                    head->state = 0;
+                    printf("释放了！\n");
+                    return 1;
+                }
+                else if (t2->state == 0)//向下合并
+                {
+                    t2->size += head->size;
+                    t2->star_address = head->star_address;
+                    head = t2;
                     s1 = head;
-                    head = t1;
                     free(s1);
                     printf("释放了！\n");
                     return 1;
                 }
-            }
-            else if (t2 == NULL)
-            {
-                strcpy(head->workname, "NULL");
-                head->state = 0;
-                printf("释放了！\n");
-                return 1;
-            }
-            else if (t2->state == 0)
-            {
-                t2->size += head->size;
-                t2->star_address = head->star_address;
-                head = t2;
-                s1 = head;
-                free(s1);
-                printf("释放了！\n");
-                return 1;
-            }
-            else
-            {
-                /*t1->next = head;
-                head->last = t1;
-                head->next = t2;
-                t2->last = head;
-                printf("释放了！\n");
-                return 1;*/
-                head->state = 0;
-                strcpy(head->workname,"NULL");
-                printf("释放了！\n");
-                return 1;
-            }
+                else
+                {
+                    head->state = 0;
+                    strcpy(head->workname, "NULL");
+                    printf("释放了！\n");
+                    return 1;
+                }
         }
         else
             head = head->next;
@@ -245,51 +281,72 @@ int release_mem(char workname[], mslist* rhead)
         return 0;
     }
 }
-mslist* list_sort(mslist* head)
-{
-    if (head==NULL || head->next == NULL)
+void Listsort(mslist*& head) {
+    if (head == NULL || head->next == NULL)
+        return;
+    mslist* p = NULL, * q = head, * q1, * qhead; // p是排序后的
+    while (q->next != NULL)
     {
-        return head;
-    }
-    mslist* pn, * pl;
-    pl = head;
-    head = head->next;
-    pl->next = NULL;
-    pl->last = NULL;
-    while (head != NULL)
-    {
-        pn = head;
-        mslist* p = pl,*flag=NULL;
-        while (p != NULL && pn->size > p->size)
+        q1 = q->next;
+        q->next = NULL;
+        q->last = NULL;
+        q1->last = NULL;
+        int flag = 0;
+        if (p == NULL) {
+            p = q;
+            q = q1;
+            continue;
+        }
+        while (p->size < q->size && p->next != NULL)
         {
-            flag = p;
             p = p->next;
         }
-        if (p != NULL)
-        {
-            if (p->last != NULL)
-            {
-                pn->next = p;
-                pn->last = p->last;
-                p->last->next = pn;
-                p->last = pn;
-            }
-            else if (p->last == NULL)
-            {
-                pn->last = NULL;
-                pn->next = p;
-                p->last = pn;
-                pl = pn;
-            }
+        if (p->size < q->size) {
+            p->next = q;
+            q->last = p;
         }
         else {
-            flag->next = pn;
-            pn->last = flag;
-            pn->next = NULL;
+            if (p->last != NULL) {
+                mslist* t = p->last;
+                t->next = q;
+                q->last = t;
+                q->next = p;
+                p->last = q;
+            }
+            else {
+                q->next = p;
+                p->last = q;
+            }
         }
-        head = head->next;
+        q = q1;
+        while (p->last != NULL) {
+            p = p->last;
+        }
     }
-    return pl;
+    while (p->size < q->size && p->next != NULL) {
+        p = p->next;
+    }
+    if (p->size < q->size) {
+        p->next = q;
+        q->last = p;
+    }
+    else {
+        if (p->last != NULL) {
+            mslist* t = p->last;
+            t->next = q;
+            q->last = t;
+            q->next = p;
+            p->last = q;
+        }
+        else {
+            q->next = p;
+            p->last = q;
+        }
+    }
+    while (p->last != NULL) {
+        p = p->last;
+    }
+    head = p;
 }
 int main()
 {
@@ -300,9 +357,11 @@ int main()
     table = creat();
     list_sort(f_table);
     bool flag = false;
+   // free_init(f_table);
     while(1)
     {
         flag = false;
+
         printf("___>");
         scanf("%s",str);
         if (strcmp(str, fun[0]) == 0)
