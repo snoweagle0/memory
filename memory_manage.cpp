@@ -5,7 +5,6 @@
 #include <algorithm>
 using namespace std;
 void display_freelist();
-bool cmp();
 typedef struct memory_unit{ // 内存块结构体
     int size;
     char* star_address;
@@ -34,6 +33,7 @@ void display_mslist()//显示内存块表
 {
     int i = 0;
     mslist* p = table;
+   // Listsort(f_table);
     printf("内存块表\n");
     //printf("ID 进程名 起始地址 占有空间 状态\t\n");
     while (p != NULL)
@@ -88,8 +88,10 @@ int request_mem(int r_size,char workname[])
 {
     mslist* p, *q,* pnew;
     mslist* f_last, * f_next;
+    Listsort(f_table);
     p = f_table;
     q = table;
+    
     while (p != NULL)
     {
         if (p->size >= r_size)
@@ -142,12 +144,14 @@ int request_mem(int r_size,char workname[])
                         return 0;
                     }
                 }
+				q=q->next;
             }
             if (q == NULL)
             {
                 printf("error 请检查内存分区表和空闲分区表！\n");
                 return -1;
             }
+				
         }
         p = p->next;
     }
@@ -159,6 +163,7 @@ int request_mem(int r_size,char workname[])
 }
 int release_mem(char workname[], mslist* rhead, mslist* rtable)
 {
+    list_sort(f_table);
     mslist* s1 = NULL, * s2 = NULL, * t1 = NULL, * t2 = NULL, * head = rhead, *hlist=rtable, *hlist1=rtable;
 	char *address=NULL;
     char* t = workname;
@@ -193,6 +198,7 @@ int release_mem(char workname[], mslist* rhead, mslist* rtable)
                     //下为0
                     if (t2->state == 0)
                     {
+						address=t2->star_address;
                         t2->size += head->size;
                         t2->star_address = head->star_address;
                        // strcpy(t2->workname, "NULL");
@@ -202,10 +208,11 @@ int release_mem(char workname[], mslist* rhead, mslist* rtable)
 						//空闲表2
 						while(hlist!=NULL)
 						{
-							if(hlist->star_address==head->star_address)
+							if(hlist->star_address==address)
 							{
 								hlist->star_address=head->star_address;
 								hlist->size=head->size;
+								hlist->last=NULL;
 								list_sort(rtable);
 								break;
 							}
@@ -228,10 +235,19 @@ int release_mem(char workname[], mslist* rhead, mslist* rtable)
                         s1->size = head->size;
                         s1->state = 0;
                         s1->last = NULL;
-                        s1->next = f_table;
-                        f_table->last = s1;
-                        f_table = s1;
-                        list_sort(f_table);
+						if(f_table!=NULL)
+						{
+						    s1->next = f_table;
+						    f_table->last = s1;
+						    f_table = s1;
+						    list_sort(f_table);
+						}
+						else
+						{
+							s1->last=NULL;
+							s1->next=NULL;
+							f_table=s1;
+						}
                         printf("释放了！\n");
                         return 1;
                     }
@@ -365,14 +381,24 @@ int release_mem(char workname[], mslist* rhead, mslist* rtable)
 					s1->star_address=head->star_address;
 					s1->size=head->size;
 					s1->state=0;
-					while(hlist->next!=NULL)
+					if(hlist!=NULL)
 					{
-						hlist=hlist->last;
+						while(hlist->next!=NULL)
+						{
+							hlist=hlist->next;
+						}
+						hlist->next=s1;
+						s1->last=hlist;
+						s1->next=NULL;
+						list_sort(rtable);
 					}
-					hlist->next=s1;
-					s1->last=hlist;
-					s1->next=NULL;
-					list_sort(rtable);
+					else
+					{
+						s1->next=NULL;
+						s1->last=NULL;
+						f_table=s1;
+						list_sort(rtable);
+					}
                     printf("释放了！\n");
                     return 1;
                 }
@@ -381,8 +407,10 @@ int release_mem(char workname[], mslist* rhead, mslist* rtable)
 					address=t2->star_address;
                     t2->size += head->size;
                     t2->star_address = head->star_address;
-                    head = t2;
+					t1->next=t2;
+					t2->last=t1;
                     s1 = head;
+					head = t2;
                     free(s1);
 					//空闲表8
 					while(hlist!=NULL)
@@ -421,7 +449,7 @@ int release_mem(char workname[], mslist* rhead, mslist* rtable)
                         }
                         hlist->next = s1;
                         s1->last = hlist;
-                        list_sort(rtable);
+                        list_sort(f_table);
                     }
                     else
                     {
