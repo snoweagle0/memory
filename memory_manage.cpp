@@ -22,7 +22,77 @@ typedef struct work_unit {
 mslist* list_sort(mslist* &head);
 mslist* table;//内存块表
 mslist* f_table;//空闲分区表
-wklist* wkunit;
+wklist* wkunit=NULL;
+bool addwkunit(char workname[])
+{
+
+    wklist* pnew = wkunit, * plast = NULL;
+    if (wkunit != NULL)
+    {
+        //链表不为空，新的进程在链表中使用尾插
+        while (pnew != NULL)
+        {
+            if (strcmp(pnew->workname, workname) == 0)
+                return false; // 如果链表中存在改进程，直接禁止添加
+            plast = pnew;
+            pnew = pnew->next;
+        }
+        if (pnew == NULL)
+        {
+            // 没有改进程分配新节点
+            pnew = (wklist*)malloc(sizeof(wklist));
+            strcpy(pnew->workname, workname);
+            plast->next = pnew;
+            pnew->next = NULL;
+        }
+    }
+    else {
+        //链表为空，新节点直接作为头节点
+        pnew = (wklist*)malloc(sizeof(wklist));
+        strcpy(pnew->workname, workname);
+        wkunit = pnew;
+        pnew->next = NULL;
+    }
+    return true;
+}
+bool deletunit(char workname[])//删除进程
+{
+    wklist* p = wkunit, * plast = NULL;
+    if (wkunit == NULL)
+    {
+        printf("没有改进程且当前没有任何进程!\n");
+        return false;
+    }
+    else {
+        while (p != NULL)
+        {
+            if (strcmp(workname, p->workname) == 0)
+            {
+                if ( p == wkunit)
+                {
+                    wkunit = p->next;
+                    free(p);
+                    return true;
+                }
+                else if (p->next == NULL)
+                {
+                    plast->next = NULL;
+                    free(p);
+                    return true;
+                }
+                else if (p->next != NULL && plast != NULL)
+                {
+                    plast->next = p->next;
+                    free(p);
+                    return true;
+                }
+            }
+            p = p->next;
+        }
+    }
+    printf("没有找到改进程!\n");
+    return false;
+}
 void Listsort(mslist*& head);
 mslist* list_sort(mslist*& head);
 wklist* wk_creat_node()
@@ -88,10 +158,13 @@ int request_mem(int r_size,char workname[])
 {
     mslist* p, *q,* pnew;
     mslist* f_last, * f_next;
-    Listsort(f_table);
+    Listsort(f_table);// 将空闲分区表按空闲块大小排序
     p = f_table;
     q = table;
-    
+    /*
+    * p指针用于遍历空闲分区链表f_table
+    * q指针用于遍历内存块链表table
+    */
     while (p != NULL)
     {
         if (p->size >= r_size)
@@ -124,6 +197,11 @@ int request_mem(int r_size,char workname[])
                         }
                         Listsort(f_table);
                         return 0;
+                        /*
+                        * 当内存中有大小正好合适的空闲分区时，直接将其状态进行修改
+                        * 并从空闲分区链表当中移除
+                        * 移除时注意分删头、删尾、删中间三种情况
+                        */
                    }
                     else {
                         p->size = p->size - r_size;
@@ -142,6 +220,12 @@ int request_mem(int r_size,char workname[])
                         q->size = q->size - r_size;
                         Listsort(f_table);
                         return 0;
+                        /*
+                        * 没有正好合适的空闲大小时，我们的内存块链表需要新增一个节点
+                        * 用来存放从大的空闲块中分割出来的小块，由于分割从高地址向低地址分割
+                        * 所以这个新的块一定会插入在找到的空闲块(p也就是分割前的块)的后面
+                        * 考虑插中间和插尾两种情况
+                        */
                     }
                 }
 				q=q->next;
@@ -158,6 +242,7 @@ int request_mem(int r_size,char workname[])
     if (p == NULL)
     {
         printf("空间不足!\n");
+        deletunit(workname);
     }
     return 0;
 }
@@ -620,7 +705,9 @@ int main()
         flag = false;
 
         printf("___>");
-        scanf("%s",str);
+       scanf("%s",str);
+        if (strcmp(str, "") == 0)
+            continue;
         if (strcmp(str, fun[0]) == 0)
         {
             printf("Enter the process name and required memory space.\n");
@@ -638,7 +725,12 @@ int main()
                 printf("Error! The memory space must be greater than 0.\n");
                 continue;
             }
+            if(addwkunit(work))
             request_mem(r_size, work);
+            else {
+                printf("该进程已存在！\n");
+                continue;
+            }
         }
         else if (strcmp(str, fun[1]) == 0)
         {
@@ -650,6 +742,7 @@ int main()
                 printf("work name error.\n");
                 continue;
             }
+            if(deletunit(work))
             release_mem(work,table,f_table);
         }
         else if(strcmp(str,fun[2])==0)
