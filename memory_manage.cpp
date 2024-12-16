@@ -1,9 +1,11 @@
-ï»¿#include <iostream>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
+using namespace std;
 void display_freelist();
-typedef struct memory_unit{ // å†…å­˜å—ç»“æž„ä½“
+typedef struct memory_unit{ // ÄÚ´æ¿é½á¹¹Ìå
     int size;
     char* star_address;
     bool state;
@@ -17,42 +19,116 @@ typedef struct work_unit {
     int size;
     struct work_unit* next;
 }wklist;
-mslist* table;//å†…å­˜å—è¡¨
-mslist* f_table;//ç©ºé—²åˆ†åŒºè¡¨
-wklist* wkunit;
+mslist* list_sort(mslist* &head);
+mslist* table;//ÄÚ´æ¿é±í
+mslist* f_table;//¿ÕÏÐ·ÖÇø±í
+wklist* wkunit=NULL;
+bool addwkunit(char workname[])
+{
+
+    wklist* pnew = wkunit, * plast = NULL;
+    if (wkunit != NULL)
+    {
+        //Á´±í²»Îª¿Õ£¬ÐÂµÄ½ø³ÌÔÚÁ´±íÖÐÊ¹ÓÃÎ²²å
+        while (pnew != NULL)
+        {
+            if (strcmp(pnew->workname, workname) == 0)
+                return false; // Èç¹ûÁ´±íÖÐ´æÔÚ¸Ä½ø³Ì£¬Ö±½Ó½ûÖ¹Ìí¼Ó
+            plast = pnew;
+            pnew = pnew->next;
+        }
+        if (pnew == NULL)
+        {
+            // Ã»ÓÐ¸Ä½ø³Ì·ÖÅäÐÂ½Úµã
+            pnew = (wklist*)malloc(sizeof(wklist));
+            strcpy(pnew->workname, workname);
+            plast->next = pnew;
+            pnew->next = NULL;
+        }
+    }
+    else {
+        //Á´±íÎª¿Õ£¬ÐÂ½ÚµãÖ±½Ó×÷ÎªÍ·½Úµã
+        pnew = (wklist*)malloc(sizeof(wklist));
+        strcpy(pnew->workname, workname);
+        wkunit = pnew;
+        pnew->next = NULL;
+    }
+    return true;
+}
+bool deletunit(char workname[])//É¾³ý½ø³Ì
+{
+    wklist* p = wkunit, * plast = NULL;
+    if (wkunit == NULL)
+    {
+        printf("Ã»ÓÐ¸Ä½ø³ÌÇÒµ±Ç°Ã»ÓÐÈÎºÎ½ø³Ì!\n");
+        return false;
+    }
+    else {
+        while (p != NULL)
+        {
+            if (strcmp(workname, p->workname) == 0)
+            {
+                if ( p == wkunit)
+                {
+                    wkunit = p->next;
+                    free(p);
+                    return true;
+                }
+                else if (p->next == NULL)
+                {
+                    plast->next = NULL;
+                    free(p);
+                    return true;
+                }
+                else if (p->next != NULL && plast != NULL)
+                {
+                    plast->next = p->next;
+                    free(p);
+                    return true;
+                }
+            }
+            p = p->next;
+        }
+    }
+    printf("Ã»ÓÐÕÒµ½¸Ä½ø³Ì!\n");
+    return false;
+}
+void Listsort(mslist*& head);
+mslist* list_sort(mslist*& head);
 wklist* wk_creat_node()
 {
     return (wklist*)malloc(sizeof(wklist));
 }
-void display_mslist()//æ˜¾ç¤ºå†…å­˜å—è¡¨
+void display_mslist()//ÏÔÊ¾ÄÚ´æ¿é±í
 {
     int i = 0;
     mslist* p = table;
-    printf("å†…å­˜å—è¡¨\n");
-    //printf("ID è¿›ç¨‹å èµ·å§‹åœ°å€ å æœ‰ç©ºé—´ çŠ¶æ€\t\n");
+   // Listsort(f_table);
+    printf("ÄÚ´æ¿é±í\n");
+    //printf("ID ½ø³ÌÃû ÆðÊ¼µØÖ· Õ¼ÓÐ¿Õ¼ä ×´Ì¬\t\n");
     while (p != NULL)
     {
         if(p->state==false)
-        printf("ID:%d\tè¿›ç¨‹å:%s èµ·å§‹åœ°å€:%u å æœ‰ç©ºé—´:%d çŠ¶æ€:ç©ºé—²\n",i,p->workname,p->star_address,p->size);
+        printf("ID:%d\t½ø³ÌÃû:%s ÆðÊ¼µØÖ·:%u Õ¼ÓÐ¿Õ¼ä:%d ×´Ì¬:¿ÕÏÐ\n",i,p->workname,p->star_address,p->size);
         else
-            printf("ID:%d\tè¿›ç¨‹å:%s èµ·å§‹åœ°å€:%u å æœ‰ç©ºé—´:%d çŠ¶æ€:å ç”¨\n", i, p->workname, p->star_address, p->size);
+            printf("ID:%d\t½ø³ÌÃû:%s ÆðÊ¼µØÖ·:%u Õ¼ÓÐ¿Õ¼ä:%d ×´Ì¬:Õ¼ÓÃ\n", i, p->workname, p->star_address, p->size);
         p = p->next;
         i++;
     }
     display_freelist();
 }
-void display_freelist()//æ˜¾ç¤ºç©ºé—²åˆ†åŒºè¡¨
+void display_freelist()//ÏÔÊ¾¿ÕÏÐ·ÖÇø±í
 {
     int i = 0;
     mslist* p = f_table;
-    printf("ç©ºé—²åˆ†åŒºè¡¨\n");
-    //printf("ID è¿›ç¨‹å èµ·å§‹åœ°å€ å æœ‰ç©ºé—´ çŠ¶æ€\t\n");
+    printf("¿ÕÏÐ·ÖÇø±í\n");
+    //printf("ID ½ø³ÌÃû ÆðÊ¼µØÖ· Õ¼ÓÐ¿Õ¼ä ×´Ì¬\t\n");
     while (p != NULL)
     {
-        if (p->state == false)
-            printf("ID:%d\t \tèµ·å§‹åœ°å€:%u å æœ‰ç©ºé—´:%d çŠ¶æ€:ç©ºé—²\n", i, p->star_address, p->size);
-        else
-            printf("ID:%d\t \tèµ·å§‹åœ°å€:%u å æœ‰ç©ºé—´:%d çŠ¶æ€:å ç”¨\n", i, p->star_address, p->size);
+       // if (p->state == false)
+            printf("ID:%d\t \tÆðÊ¼µØÖ·:%u Õ¼ÓÐ¿Õ¼ä:%d ×´Ì¬:¿ÕÏÐ\n", i, p->star_address, p->size);
+       // else
+       //     printf("ID:%d\t \tÆðÊ¼µØÖ·:%u Õ¼ÓÐ¿Õ¼ä:%d ×´Ì¬:Õ¼ÓÃ\n", i, p->star_address, p->size);
         p = p->next;
         i++;
     }
@@ -61,14 +137,10 @@ mslist* creat_node()
 {
     return (mslist*)malloc(sizeof(mslist));
 }
-mslist* free_init(mslist* head)
-{
-    return NULL;
-}
 mslist* creat()
 {
     mslist* head=(mslist*)malloc(sizeof(mslist));
-    head->star_address = (char*)malloc(100);
+    head->star_address = (char*)malloc(101);
     head->next = NULL;
     head->last = NULL;
     head->size = 100;
@@ -84,12 +156,15 @@ mslist* creat()
 }
 int request_mem(int r_size,char workname[])
 {
-    
-    
     mslist* p, *q,* pnew;
     mslist* f_last, * f_next;
+    Listsort(f_table);// ½«¿ÕÏÐ·ÖÇø±í°´¿ÕÏÐ¿é´óÐ¡ÅÅÐò
     p = f_table;
     q = table;
+    /*
+    * pÖ¸ÕëÓÃÓÚ±éÀú¿ÕÏÐ·ÖÇøÁ´±íf_table
+    * qÖ¸ÕëÓÃÓÚ±éÀúÄÚ´æ¿éÁ´±ítable
+    */
     while (p != NULL)
     {
         if (p->size >= r_size)
@@ -104,10 +179,29 @@ int request_mem(int r_size,char workname[])
                         q->state = true;
                         f_last = p->last;
                         f_next = p->next;
-                        f_last->next = p->next;
-                        f_next->last = p->last;
-                        free(p);
+                        if (f_last != NULL && f_next != NULL)
+                        {
+                            f_last->next = p->next;
+                            f_next->last = p->last;
+                            free(p);
+                        }
+                        else if (p==f_table)
+                        {
+                            f_table = f_table->next;
+                            free(p);
+                        }
+                        else if (p->next==NULL)
+                        {
+                            f_last->next = NULL;
+                            free(p);
+                        }
+                        Listsort(f_table);
                         return 0;
+                        /*
+                        * µ±ÄÚ´æÖÐÓÐ´óÐ¡ÕýºÃºÏÊÊµÄ¿ÕÏÐ·ÖÇøÊ±£¬Ö±½Ó½«Æä×´Ì¬½øÐÐÐÞ¸Ä
+                        * ²¢´Ó¿ÕÏÐ·ÖÇøÁ´±íµ±ÖÐÒÆ³ý
+                        * ÒÆ³ýÊ±×¢Òâ·ÖÉ¾Í·¡¢É¾Î²¡¢É¾ÖÐ¼äÈýÖÖÇé¿ö
+                        */
                    }
                     else {
                         p->size = p->size - r_size;
@@ -118,34 +212,483 @@ int request_mem(int r_size,char workname[])
                         pnew->state = true;
                         pnew->last = q;
                         pnew->next = q->next;
+                        if (q->next != NULL)
+                        {
+                            q->next->last = pnew;
+                        }
                         q->next = pnew;
-                        q->size =q->size - r_size;
+                        q->size = q->size - r_size;
+                        Listsort(f_table);
                         return 0;
+                        /*
+                        * Ã»ÓÐÕýºÃºÏÊÊµÄ¿ÕÏÐ´óÐ¡Ê±£¬ÎÒÃÇµÄÄÚ´æ¿éÁ´±íÐèÒªÐÂÔöÒ»¸ö½Úµã
+                        * ÓÃÀ´´æ·Å´Ó´óµÄ¿ÕÏÐ¿éÖÐ·Ö¸î³öÀ´µÄÐ¡¿é£¬ÓÉÓÚ·Ö¸î´Ó¸ßµØÖ·ÏòµÍµØÖ··Ö¸î
+                        * ËùÒÔÕâ¸öÐÂµÄ¿éÒ»¶¨»á²åÈëÔÚÕÒµ½µÄ¿ÕÏÐ¿é(pÒ²¾ÍÊÇ·Ö¸îÇ°µÄ¿é)µÄºóÃæ
+                        * ¿¼ÂÇ²åÖÐ¼äºÍ²åÎ²Á½ÖÖÇé¿ö
+                        */
                     }
                 }
+				q=q->next;
             }
             if (q == NULL)
             {
-                printf("error è¯·æ£€æŸ¥å†…å­˜åˆ†åŒºè¡¨å’Œç©ºé—²åˆ†åŒºè¡¨ï¼\n");
+                printf("error Çë¼ì²éÄÚ´æ·ÖÇø±íºÍ¿ÕÏÐ·ÖÇø±í£¡\n");
                 return -1;
             }
+				
         }
         p = p->next;
     }
     if (p == NULL)
     {
-        printf("ç©ºé—´ä¸è¶³!\n");
+        printf("¿Õ¼ä²»×ã!\n");
+        deletunit(workname);
     }
     return 0;
 }
-int release_mem(char workname[],mslist* rhead)
+int release_mem(char workname[], mslist* rhead, mslist* rtable)
 {
-   
-    return 0;
+    list_sort(f_table);
+    mslist* s1 = NULL, * s2 = NULL, * t1 = NULL, * t2 = NULL, * head = rhead, *hlist=rtable, *hlist1=rtable;
+	char *address=NULL;
+    char* t = workname;
+    while (head != NULL)
+    {
+        if (strcmp(t, head->workname) == 0)
+        {
+            t1 = head->last;
+            t2 = head->next;
+            //ÉÏÎª¿Õ
+            if (t1 == NULL)
+            {
+                //ÏÂÎª¿Õ
+                if (t2 == NULL)
+                {
+                    strcpy(head->workname, "NULL");
+                    head->state = 0;
+					//¿ÕÏÐ±í1
+                    s1 = creat_node();
+                    s1->star_address = head->star_address;
+                    s1->size = head->size;
+                    s1->state = 0;
+                    s1->last = NULL;
+                    s1->next = NULL;
+                    f_table = s1;
+                    list_sort(f_table);
+                    printf("ÊÍ·ÅÁË£¡\n");
+                    return 1;
+                }
+                else
+                {
+                    //ÏÂÎª0
+                    if (t2->state == 0)
+                    {
+						address=t2->star_address;
+                        t2->size += head->size;
+                        t2->star_address = head->star_address;
+                       // strcpy(t2->workname, "NULL");
+                        s1 = head;
+                        head = t2;
+                        free(s1);
+						//¿ÕÏÐ±í2
+						while(hlist!=NULL)
+						{
+							if(hlist->star_address==address)
+							{
+								hlist->star_address=head->star_address;
+								hlist->size=head->size;
+								hlist->last=NULL;
+								list_sort(rtable);
+								break;
+							}
+							else
+							{
+								hlist=hlist->next;
+							}
+
+						}
+                        printf("ÊÍ·ÅÁË£¡\n");
+                        return 1;
+                    }
+                    else
+                    {
+                        strcpy(head->workname, "NULL");
+                        head->state = 0;
+						//¿ÕÏÐ±í3
+                        s1 = creat_node();
+                        s1->star_address = head->star_address;
+                        s1->size = head->size;
+                        s1->state = 0;
+                        s1->last = NULL;
+						if(f_table!=NULL)
+						{
+						    s1->next = f_table;
+						    f_table->last = s1;
+						    f_table = s1;
+						    list_sort(f_table);
+						}
+						else
+						{
+							s1->last=NULL;
+							s1->next=NULL;
+							f_table=s1;
+						}
+                        printf("ÊÍ·ÅÁË£¡\n");
+                        return 1;
+                    }
+                    
+                }
+            }
+            else//ÉÏ²»Îª¿Õ
+                if (t1->state == 0)
+                {
+                    if (t2 == NULL)//ÊÍ·ÅÎ²½Úµã
+                    {
+                        t1->size += head->size;
+                        t1->next = head->next;
+                        s1 = head;
+                        head = t1;
+                        free(s1);
+                        //¿ÕÏÐ±í4
+						while(hlist!=NULL)
+						{
+							if(hlist->star_address==head->star_address)
+							{
+								hlist->star_address=head->star_address;
+								hlist->size=head->size;
+								list_sort(rtable);
+								break;
+							}
+							else
+							{
+								hlist=hlist->next;
+							}
+
+						}
+                        printf("ÊÍ·ÅÁË£¡\n");
+                        return 1;
+                    }
+                    else if (t2->state == 0)//ºÏ²¢Èý¸ö¿ÕÏÐ·ÖÇø
+                    {
+                        t1->size += head->size + t2->size;
+                        s1 = head;
+                        s2 = head->next;
+						address=s2->star_address;
+                        t1->next = s2->next;
+                        if(t2->next!=NULL)
+                        t2->next->last = t1;
+                        head = t1;
+                        free(s1);
+                        free(s2);
+                        //¿ÕÏÐ±í5
+						while(hlist!=NULL)
+						{
+							if(hlist->star_address==head->star_address)
+							{
+								hlist->star_address=head->star_address;
+								hlist->size=head->size;
+								while(hlist1!=NULL)
+								{
+									if(hlist1->star_address==address)
+									{
+										s1=hlist1->last;
+										s2=hlist1->next;
+										s1->next=hlist1->next;
+										if(s2!=NULL)
+										s2->last=hlist1->last;
+										s1=hlist1;
+										free(s1);
+										list_sort(rtable);
+										break;
+									}
+									else
+									{
+										hlist1=hlist1->next;
+									}
+								}
+								break;
+							}
+							else
+							{
+								hlist=hlist->next;
+							}
+
+						}
+                        /*s1 = creat_node();
+                        s1->star_address = head->star_address;
+                        s1->size = head->size;
+                        s1->state = 0;
+                        s1->next = NULL;
+                        while (hlist->next!=NULL)
+                        {
+                            hlist = hlist->next;
+                        }
+                        hlist->next = s1;
+                        s1->last = hlist;
+                        list_sort(rtable);*/
+                        printf("ÊÍ·ÅÁË£¡\n");
+                        return 1;
+                    }
+                    else//ÏòÉÏºÏ²¢
+                    {
+                        t1->size += head->size;
+                        t1->next = head->next;
+                        t2->last = t1;
+                        s1 = head;
+                        head = t1;
+                        free(s1);
+						//¿ÕÏÐ±í6
+						while(hlist!=NULL)
+						{
+							if(hlist->star_address==head->star_address)
+							{
+								hlist->star_address=head->star_address;
+								hlist->size=head->size;
+								list_sort(rtable);
+								break;
+							}
+							else
+							{
+								hlist=hlist->next;
+							}
+
+						}
+                        printf("ÊÍ·ÅÁË£¡\n");
+                        return 1;
+                    }
+                }
+                else if (t2 == NULL)//ÊÍ·ÅÎ²½Úµã
+                {
+                    strcpy(head->workname, "NULL");
+                    head->state = 0;
+					//¿ÕÏÐ±í7
+					s1=creat_node();
+					s1->star_address=head->star_address;
+					s1->size=head->size;
+					s1->state=0;
+					if(hlist!=NULL)
+					{
+						while(hlist->next!=NULL)
+						{
+							hlist=hlist->next;
+						}
+						hlist->next=s1;
+						s1->last=hlist;
+						s1->next=NULL;
+						list_sort(rtable);
+					}
+					else
+					{
+						s1->next=NULL;
+						s1->last=NULL;
+						f_table=s1;
+						list_sort(rtable);
+					}
+                    printf("ÊÍ·ÅÁË£¡\n");
+                    return 1;
+                }
+                else if (t2->state == 0)//ÏòÏÂºÏ²¢
+                {
+					address=t2->star_address;
+                    t2->size += head->size;
+                    t2->star_address = head->star_address;
+					t1->next=t2;
+					t2->last=t1;
+                    s1 = head;
+					head = t2;
+                    free(s1);
+					//¿ÕÏÐ±í8
+					while(hlist!=NULL)
+						{
+							if(hlist->star_address==address)
+							{
+								hlist->star_address=head->star_address;
+								hlist->size=head->size;
+								list_sort(rtable);
+								break;
+							}
+							else
+							{
+								hlist=hlist->next;
+							}
+
+						}
+                    printf("ÊÍ·ÅÁË£¡\n");
+                    return 1;
+                }
+                else
+                {
+                    head->state = 0;
+                    strcpy(head->workname, "NULL");
+					//¿ÕÏÐ±í9
+                    s1 = creat_node();
+                    s1->star_address = head->star_address;
+                    s1->size = head->size;
+                    s1->state = 0;
+                    s1->next = NULL;
+                    if (hlist != NULL)
+                    {
+                        while (hlist->next != NULL)
+                        {
+                            hlist = hlist->next;
+                        }
+                        hlist->next = s1;
+                        s1->last = hlist;
+                        list_sort(f_table);
+                    }
+                    else
+                    {
+                        s1->last = NULL;
+                        f_table = s1;
+                        list_sort(f_table);
+                    }
+                    printf("ÊÍ·ÅÁË£¡\n");
+                    return 1;
+                }
+        }
+        else
+            head = head->next;
+    }
+    if (head == NULL)
+    {
+        printf("Ã»ÓÐÕÒµ½£¡\n");
+        return 0;
+    }
 }
-int list_sort(mslist* head)
+void Listsort(mslist*& head) {          //°´ÕÕÄÚ´æ´óÐ¡ÅÅÐò
+    if (head == NULL || head->next == NULL)
+        return;
+    mslist* p = NULL, * q = head, * q1, * qhead; // pÊÇÅÅÐòºóµÄ
+    while (q->next != NULL)
+    {
+        q1 = q->next;
+        q->next = NULL;
+        q->last = NULL;
+        q1->last = NULL;
+        int flag = 0;
+        if (p == NULL) {
+            p = q;
+            q = q1;
+            continue;
+        }
+        while (p->size < q->size && p->next != NULL)
+        {
+            p = p->next;
+        }
+        if (p->size < q->size) {
+            p->next = q;
+            q->last = p;
+        }
+        else {
+            if (p->last != NULL) {
+                mslist* t = p->last;
+                t->next = q;
+                q->last = t;
+                q->next = p;
+                p->last = q;
+            }
+            else {
+                q->next = p;
+                p->last = q;
+            }
+        }
+        q = q1;
+        while (p->last != NULL) {
+            p = p->last;
+        }
+    }
+    while (p->size < q->size && p->next != NULL) {
+        p = p->next;
+    }
+    if (p->size < q->size) {
+        p->next = q;
+        q->last = p;
+    }
+    else {
+        if (p->last != NULL) {
+            mslist* t = p->last;
+            t->next = q;
+            q->last = t;
+            q->next = p;
+            p->last = q;
+        }
+        else {
+            q->next = p;
+            p->last = q;
+        }
+    }
+    while (p->last != NULL) {
+        p = p->last;
+    }
+    head = p;
+}
+mslist* list_sort(mslist*& head)   // °´µØÖ·´óÐ¡ÅÅÐò
 {
-    return 0;
+    if (head == NULL || head->next == NULL)
+        return NULL;
+    mslist* p = NULL, * q = head, * q1, * qhead; // pÊÇÅÅÐòºóµÄ
+    while (q->next != NULL)
+    {
+        q1 = q->next;
+        q->next = NULL;
+        q->last = NULL;
+        q1->last = NULL;
+        int flag = 0;
+        if (p == NULL) {
+            p = q;
+            q = q1;
+            continue;
+        }
+        while (p->star_address < q->star_address && p->next != NULL)
+        {
+            p = p->next;
+        }
+        if (p->star_address < q->star_address) {
+            p->next = q;
+            q->last = p;
+        }
+        else {
+            if (p->last != NULL) {
+                mslist* t = p->last;
+                t->next = q;
+                q->last = t;
+                q->next = p;
+                p->last = q;
+            }
+            else {
+                q->next = p;
+                p->last = q;
+            }
+        }
+        q = q1;
+        while (p->last != NULL) {
+            p = p->last;
+        }
+    }
+    while (p->star_address < q->star_address && p->next != NULL) {
+        p = p->next;
+    }
+    if (p->star_address < q->star_address) {
+        p->next = q;
+        q->last = p;
+    }
+    else {
+        if (p->last != NULL) {
+            mslist* t = p->last;
+            t->next = q;
+            q->last = t;
+            q->next = p;
+            p->last = q;
+        }
+        else {
+            q->next = p;
+            p->last = q;
+        }
+    }
+    while (p->last != NULL) {
+        p = p->last;
+    }
+    head = p;
 }
 int main()
 {
@@ -154,17 +697,23 @@ int main()
     char work[256];
     int r_size = 0;
     table = creat();
+    list_sort(f_table);
     bool flag = false;
+   // free_init(f_table);
     while(1)
     {
         flag = false;
+
         printf("___>");
-        scanf("%s",str);
+       scanf("%s",str);
+        if (strcmp(str, "") == 0)
+            continue;
         if (strcmp(str, fun[0]) == 0)
         {
             printf("Enter the process name and required memory space.\n");
             printf("___>");
             scanf("%s",work);
+            //printf("Enter you ")
             scanf("%d",&r_size);
             if (strlen(work) <= 0)
             {
@@ -176,7 +725,12 @@ int main()
                 printf("Error! The memory space must be greater than 0.\n");
                 continue;
             }
+            if(addwkunit(work))
             request_mem(r_size, work);
+            else {
+                printf("¸Ã½ø³ÌÒÑ´æÔÚ£¡\n");
+                continue;
+            }
         }
         else if (strcmp(str, fun[1]) == 0)
         {
@@ -188,7 +742,8 @@ int main()
                 printf("work name error.\n");
                 continue;
             }
-            release_mem(work,table);
+            if(deletunit(work))
+            release_mem(work,table,f_table);
         }
         else if(strcmp(str,fun[2])==0)
         {

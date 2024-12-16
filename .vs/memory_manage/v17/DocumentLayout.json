@@ -1,12 +1,41 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "I:\\code\\VS\\memory_manage\\memory_manage\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{1A834255-E80E-4D8E-BAEC-73F02869F5E1}|memory_manage.vcxproj|I:\\code\\VS\\memory_manage\\memory_manage\\memory_manage.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{1A834255-E80E-4D8E-BAEC-73F02869F5E1}|memory_manage.vcxproj|solutionrelative:memory_manage.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "memory_manage.cpp",
+              "DocumentMoniker": "I:\\code\\VS\\memory_manage\\memory_manage\\memory_manage.cpp",
+              "RelativeDocumentMoniker": "memory_manage.cpp",
+              "ToolTip": "I:\\code\\VS\\memory_manage\\memory_manage\\memory_manage.cpp",
+              "RelativeToolTip": "memory_manage.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-12-14T09:22:39.622Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }
